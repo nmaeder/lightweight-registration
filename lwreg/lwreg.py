@@ -12,9 +12,10 @@ from . import utils
 from . import helpers
 import json
 
+
 @click.group()
 @click.option(
-    "--config",
+    '--config',
     default='',
 )
 def cli(config=''):
@@ -23,79 +24,82 @@ def cli(config=''):
 
 @cli.command()
 @click.option(
-    "--confirm",
+    '--confirm',
     default='no',
 )
 def initdb(confirm='no'):
     if confirm != 'yes':
-        click.echo("initdb not confirmed, aborting")
+        click.echo('initdb not confirmed, aborting')
         return
     utils._initdb(confirm=True)
 
 
 @cli.command()
 @click.option(
-    "--ids",
+    '--ids',
     default=None,
 )
 @click.option(
-    "--id",
+    '--id',
     default=None,
 )
-@click.option("--as_submitted", default=False, is_flag=True)
-@click.option("--no-verbose", default=False, is_flag=True)
+@click.option('--as_submitted', default=False, is_flag=True)
+@click.option('--no-verbose', default=False, is_flag=True)
 def retrieve(**kwargs):
     return utils.retrieve(**kwargs)
 
 
 @cli.command()
 @click.option(
-    "--smiles",
+    '--smiles',
     default=None,
 )
 @click.option(
-    "--escape",
+    '--escape',
     default=None,
 )
 @click.option(
-    "--layers",
+    '--layers',
     default='ALL',
 )
-@click.option("--no-verbose", default=False, is_flag=True)
+@click.option('--no-verbose', default=False, is_flag=True)
 def query(**kwargs):
     return utils.query(**kwargs)
 
 
 @cli.command()
 @click.option(
-    "--smiles",
+    '--smiles',
     default=None,
 )
-@click.option("--fail-on-duplicate", default=True, is_flag=True)
+@click.option('--fail-on-duplicate', default=True, is_flag=True)
 @click.option(
-    "--escape",
+    '--escape',
     default=None,
 )
-@click.option("--no-verbose", default=False, is_flag=True)
+@click.option('--no-verbose', default=False, is_flag=True)
 def register(**kwargs):
     try:
         return utils.register(**kwargs)
     except utils._violations:
-        logging.error("Compound already registered")
+        logging.error('Compound already registered')
         sys.exit(1)
+
 
 ## need to think about how to best pass it back
 @cli.command()
 def interactive_config():
     config = helpers.interactive_config()
-    with open("./config.json","w") as f:
-        json.dump(config,f)
-    click.echo("Saved the configuration to ./config.json")
+    with open('./config.json', 'w') as f:
+        json.dump(config, f)
+    click.echo('Saved the configuration to ./config.json')
+
 
 @cli.command()
 @click.option('--who', default='world')
 def greet(who):
     print(f'hello {who}')
+
 
 if __name__ == '__main__':
     cli()

@@ -12,40 +12,41 @@ import warnings
 # of RDKit. We aren't using any of the deprecated code and can ignore the
 # warnings here
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
     from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.Chem import rdMolTransforms
 
 
 class Standardization:
-    '''
-    a Standardization should have a __call__ method which returns either the 
+    """
+    a Standardization should have a __call__ method which returns either the
       standardized molecule (on success) or None (on failure)
-    '''
-    __slots__ = ["name", "explanation"]
+    """
+
+    __slots__ = ['name', 'explanation']
 
     def __call__(self, mol):
         return mol
 
 
 class NoStandardization(Standardization):
-    name = "no_standardization"
-    explanation = "does not modify the molecule"
+    name = 'no_standardization'
+    explanation = 'does not modify the molecule'
 
     def __call__(self, mol):
         return mol
 
 
 class RemoveHs(Standardization):
-    name = "remove_hs"
-    explanation = "removes hydrogens from the molecule"
+    name = 'remove_hs'
+    explanation = 'removes hydrogens from the molecule'
 
     def __call__(self, mol):
         return Chem.RemoveHs(mol)
 
 
 class CanonicalizeOrientation(Standardization):
-    name = "canonicalize_orientation"
+    name = 'canonicalize_orientation'
     explanation = "canonicalizes the orientation of the molecule's 3D conformers (if present)"
 
     def __call__(self, mol):
@@ -56,8 +57,8 @@ class CanonicalizeOrientation(Standardization):
 
 
 class OverlappingAtomsCheck(Standardization):
-    name = "has_overlapping_atoms"
-    explanation = "fails if molecule has at least two atoms which are closer than a threshold distance to each other"
+    name = 'has_overlapping_atoms'
+    explanation = 'fails if molecule has at least two atoms which are closer than a threshold distance to each other'
     threshold = 0.0001
 
     def __call__(self, mol):
@@ -74,8 +75,8 @@ class OverlappingAtomsCheck(Standardization):
 
 
 class PolymerCheck(Standardization):
-    name = "has_polymer_info"
-    explanation = "fails if molecule has an SGroup associated with polymers"
+    name = 'has_polymer_info'
+    explanation = 'fails if molecule has an SGroup associated with polymers'
     polymerTypes = ['SRU', 'COP', 'MON', 'CRO', 'GRA']
 
     def __call__(self, mol):
@@ -88,8 +89,8 @@ class PolymerCheck(Standardization):
 
 
 class RDKitSanitize(Standardization):
-    name = "rdkit_sanitize"
-    explanation = "runs the standard RDKit sanitization on the molecule"
+    name = 'rdkit_sanitize'
+    explanation = 'runs the standard RDKit sanitization on the molecule'
 
     def __call__(self, mol):
         try:
@@ -100,8 +101,8 @@ class RDKitSanitize(Standardization):
 
 
 class FragmentParent(Standardization):
-    name = "fragment_parent"
-    explanation = "generates the fragment parent of the molecule"
+    name = 'fragment_parent'
+    explanation = 'generates the fragment parent of the molecule'
 
     def __call__(self, mol):
         try:
@@ -112,8 +113,8 @@ class FragmentParent(Standardization):
 
 
 class ChargeParent(Standardization):
-    name = "charge_parent"
-    explanation = "generates the charge parent of the molecule"
+    name = 'charge_parent'
+    explanation = 'generates the charge parent of the molecule'
 
     def __call__(self, mol):
         try:
@@ -124,8 +125,8 @@ class ChargeParent(Standardization):
 
 
 class TautomerParent(Standardization):
-    name = "tautomer_parent"
-    explanation = "generates the tautomer parent of the molecule"
+    name = 'tautomer_parent'
+    explanation = 'generates the tautomer parent of the molecule'
 
     def __call__(self, mol):
         try:
@@ -136,8 +137,8 @@ class TautomerParent(Standardization):
 
 
 class SuperParent(Standardization):
-    name = "super_parent"
-    explanation = "generates the super parent of the molecule"
+    name = 'super_parent'
+    explanation = 'generates the super parent of the molecule'
 
     def __call__(self, mol):
         try:

@@ -14,7 +14,6 @@ setup(
             'lwreg = lwreg.lwreg:cli',
         ],
     },
-    author="Greg Landrum",
-    author_email="greg.landrum@gmail.com",
-
+    author='Greg Landrum',
+    author_email='greg.landrum@gmail.com',
 )
