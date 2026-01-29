@@ -809,6 +809,30 @@ class TestRegisterConformers(unittest.TestCase):
                                                fail_on_duplicate=True,
                                                config=self._config)
 
+    def testBulkMultiConfMolecule(self):
+        utils._initdb(config=self._config, confirm=True)
+
+        mol = Chem.Mol(self._mol1)
+        mol2 = Chem.Mol(mol)
+        mol3 = Chem.Mol(self._mol3)
+        cids = rdDistGeom.EmbedMultipleConfs(mol, 10, randomSeed=0xf00d)
+        self.assertEqual(len(cids), 10)
+
+        cids = rdDistGeom.EmbedMultipleConfs(mol2, 10, randomSeed=0xf00d)
+        self.assertEqual(len(cids), 10)
+
+        cids = rdDistGeom.EmbedMultipleConfs(mol3, 10, randomSeed=0xf00d)
+        self.assertEqual(len(cids), 10)
+
+        rres = utils.bulk_register(mols=[mol, mol2, mol3], fail_on_duplicate=False, config=self._config)
+        self.assertEqual(len(rres), 30)
+        self.assertEqual(len(set(rres)), 20)
+        self.assertEqual(len(set([mrn for mrn, _ in rres])), 2)
+
+        utils._initdb(config=self._config, confirm=True)
+        with self.assertRaises(self.integrityError):
+            utils.bulk_register(mols=[mol, mol2], fail_on_duplicate=True, config=self._config)
+
     def testConformerQuery(self):
         ''' querying using a molecule which has conformers '''
         utils._initdb(config=self._config, confirm=True)
