@@ -886,7 +886,8 @@ def bulk_register(config=None,
                         mrn = mrns[smi]
                     confMrns.append(mrn)
                 if not len(res):
-                    return RegistrationFailureReasons.FILTERED
+                    res.append(RegistrationFailureReasons.FILTERED)
+                    continue
                 sMol = rc[0]
                 for i, conf in enumerate(sMol.GetConformers()):
                     if i in confsDone:
