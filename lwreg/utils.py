@@ -837,6 +837,8 @@ def bulk_register(config=None,
         f"select value from {registrationMetadataTableName} where key='rdkitVersion'"
     )
     def_rdkit_version_label = curs.fetchone()[0]
+
+    _registerConformers = _lookupWithDefault(config, "registerConformers")
     for mol in tqdm(mols, disable=not show_progress):
         if mol is None:
             res.append(RegistrationFailureReasons.PARSE_FAILURE)
@@ -847,7 +849,7 @@ def bulk_register(config=None,
                 escape = mol.GetProp(escape_property)
             else:
                 escape = None
-            if not _lookupWithDefault(config, "registerConformers"):
+            if not _registerConformers:
                 mrn, _ = _register_mol(
                     tpl,
                     escape,
