@@ -830,8 +830,10 @@ class TestRegisterConformers(unittest.TestCase):
         self.assertEqual(len(set([mrn for mrn, _ in rres])), 2)
 
         utils._initdb(config=self._config, confirm=True)
-        with self.assertRaises(self.integrityError):
-            utils.bulk_register(mols=[mol, mol2], fail_on_duplicate=True, config=self._config)
+        rres = utils.bulk_register(mols=[mol, mol2, mol3], fail_on_duplicate=True, config=self._config)
+        self.assertEqual(len(rres), 21)
+        self.assertEqual(len(set(rres)), 21)
+        self.assertTrue(RegistrationFailureReasons.DUPLICATE in rres)
 
     def testConformerQuery(self):
         ''' querying using a molecule which has conformers '''
