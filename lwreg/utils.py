@@ -847,23 +847,61 @@ def bulk_register(config=None,
                 escape = mol.GetProp(escape_property)
             else:
                 escape = None
-            mrn, conf_id = _register_mol(
-                tpl,
-                escape,
-                cn,
-                curs,
-                config,
-                fail_on_duplicate,
-                def_rdkit_version_label=def_rdkit_version_label,
-                def_std_label=def_std_label)
-
-            if mrn is None:
-                mrn = RegistrationFailureReasons.FILTERED
-
             if not _lookupWithDefault(config, "registerConformers"):
+                mrn, _ = _register_mol(
+                    tpl,
+                    escape,
+                    cn,
+                    curs,
+                    config,
+                    fail_on_duplicate,
+                    def_rdkit_version_label=def_rdkit_version_label,
+                    def_std_label=def_std_label)
+
+                if mrn is None:
+                    mrn = RegistrationFailureReasons.FILTERED
                 res.append(mrn)
             else:
-                res.append((mrn, conf_id))
+                rc = []
+                mrns = {}
+                confsDone = set()
+                confMrns = []
+                for i, conf in enumerate(tpl.mol.GetConformers()):
+                    Chem.AssignStereochemistryFrom3D(tpl.mol, conf.GetId())
+                    smi = Chem.MolToSmiles(tpl.mol)
+                    if smi not in mrns:
+                        mrn, conf_id = _register_mol(tpl,
+                                                    escape,
+                                                    cn,
+                                                    curs,
+                                                    config,
+                                                    fail_on_duplicate,
+                                                    confId=conf.GetId(),
+                                                    molCache=rc)
+                        if mrn is not None:
+                            mrns[smi] = mrn
+                            confsDone.add(i)
+                            res.append((mrn, conf_id))
+                    else:
+                        mrn = mrns[smi]
+                    confMrns.append(mrn)
+                if not len(res):
+                    return RegistrationFailureReasons.FILTERED
+                sMol = rc[0]
+                for i, conf in enumerate(sMol.GetConformers()):
+                    if i in confsDone:
+                        continue
+                    molb = Chem.MolToV3KMolBlock(sMol, confId=conf.GetId())
+                    mrn = confMrns[i]
+                    conf_id = _register_one_conformer(mrn,
+                                                    sMol,
+                                                    molb,
+                                                    cn,
+                                                    curs,
+                                                    config,
+                                                    fail_on_duplicate,
+                                                    confId=conf.GetId())
+                    res.append((mrn, conf_id))
         except _violations:
             res.append(RegistrationFailureReasons.DUPLICATE)
     if not no_verbose:
