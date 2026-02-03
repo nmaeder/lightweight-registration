@@ -215,7 +215,7 @@ def connect(config):
     global conformersTableName
     global lwregSchema
 
-    _check_config(config)
+    config = _check_config(config)
 
     cn = config.get('connection', None)
     if not cn and _dbConnection is not None and _dbConfig == config:
@@ -307,7 +307,7 @@ def _parse_mol(mol=None, molfile=None, molblock=None, smiles=None, config={}):
 
 
 def _get_standardization_list(config):
-    _check_config(config)
+    config = _check_config(config)
     sopts = _lookupWithDefault(config, 'standardization')
 
     if type(sopts) not in (list, tuple):
@@ -343,7 +343,7 @@ def standardize_mol(mol, config=None):
     Keyword arguments:
     config -- configuration dict
     """
-    _check_config(config)
+    config = _check_config(config)
 
     sopts = _get_standardization_list(config)
     for sopt in sopts:
@@ -379,7 +379,7 @@ def hash_mol(mol, escape=None, config=None):
     escape -- the escape layer
     config -- configuration dict
     """
-    _check_config(config)
+    config = _check_config(config)
 
     layers = RegistrationHash.GetMolLayers(
         mol,
@@ -645,7 +645,7 @@ def register(config=None,
     :raises RegistrationFailureReasons.PARSE_FAILURE: If molecule parsing fails.
     :raises RegistrationFailureReasons.FILTERED: If molecule is filtered out.
     """
-    _check_config(config)
+    config = _check_config(config)
 
     tpl = _parse_mol(mol=mol,
                      molfile=molfile,
@@ -745,7 +745,7 @@ def register_multiple_conformers(config=None,
     :return: A tuple of (molregno, conf_id) for each conformer registered.
 
     """
-    _check_config(config)
+    config = _check_config(config)
     if not _lookupWithDefault(config, "registerConformers"):
         raise ValueError(
             'register_multiple_conformers can only be used when registerConformers is enabled'
@@ -803,7 +803,7 @@ def bulk_register(config=None,
     else:
         raise ValueError('No input molecules provided!')
 
-    _check_config(config)
+    config = _check_config(config)
 
     res = []
     cn = connect(config)
@@ -886,7 +886,7 @@ def registration_counts(config=None):
     :param config: Configuration dictionary.
     :return: either the number of molecule in the database or a 2-tuple withe (number of molecules, number of conformers).
     """
-    _check_config(config)
+    config = _check_config(config)
 
     cn = connect(config)
     curs = cn.cursor()
@@ -911,7 +911,7 @@ def get_all_identifiers(config=None):
     :param config: Configuration dictionary.
     :return: A tuple with all of the identifiers in the database.
     """
-    _check_config(config)
+    config = _check_config(config)
     if _lookupWithDefault(config, "registerConformers"):
         cn = connect(config)
         curs = cn.cursor()
@@ -938,7 +938,7 @@ def get_all_registry_numbers(config=None):
         "Use get_all_identifiers() instead.",
         DeprecationWarning,
         stacklevel=2)
-    _check_config(config)
+    config = _check_config(config)
     cn = connect(config)
     curs = cn.cursor()
     curs.execute(f'select molregno from {hashTableName}')
@@ -973,7 +973,7 @@ def query(config=None,
     :raises ValueError: If ids are provided but registerConformers is not enabled.
     :return: List of registry numbers or list of (molregno, conf_id) tuples.
     """
-    _check_config(config)
+    config = _check_config(config)
 
     if ids is not None:
         if not _lookupWithDefault(config, "registerConformers"):
@@ -1075,7 +1075,7 @@ def retrieve(config=None,
     :param bool no_verbose: If this is False, then the registry number will be printed.
     :return: A dictionary of (data, format) 2-tuples with molregnos as keys.
     """
-    _check_config(config)
+    config = _check_config(config)
 
     registerConformers = _lookupWithDefault(config, "registerConformers")
 
@@ -1184,7 +1184,7 @@ def _initdb(config=None, confirm=False):
     """
     if not confirm:
         return
-    _check_config(config)
+    config = _check_config(config)
 
     cn = connect(config)
     curs = cn.cursor()
@@ -1287,7 +1287,7 @@ def _check_config(config):
         config = _configure()
     elif isinstance(config, str):
         config = _configure(filename=config)
-
     if config.get("dbtype", "sqlite3") not in ('sqlite3', 'postgresql'):
         raise ValueError(
             "Possible values for dbtype are sqlite3 and postgresql")
+    return config
