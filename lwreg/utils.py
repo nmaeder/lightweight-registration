@@ -215,10 +215,7 @@ def connect(config):
     global conformersTableName
     global lwregSchema
 
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
+    _check_config(config)
 
     cn = config.get('connection', None)
     if not cn and _dbConnection is not None and _dbConfig == config:
@@ -310,10 +307,7 @@ def _parse_mol(mol=None, molfile=None, molblock=None, smiles=None, config={}):
 
 
 def _get_standardization_list(config):
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
+    _check_config(config)
     sopts = _lookupWithDefault(config, 'standardization')
 
     if type(sopts) not in (list, tuple):
@@ -349,11 +343,6 @@ def standardize_mol(mol, config=None):
     Keyword arguments:
     config -- configuration dict
     """
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     _check_config(config)
 
     sopts = _get_standardization_list(config)
@@ -390,11 +379,6 @@ def hash_mol(mol, escape=None, config=None):
     escape -- the escape layer
     config -- configuration dict
     """
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     _check_config(config)
 
     layers = RegistrationHash.GetMolLayers(
@@ -661,12 +645,6 @@ def register(config=None,
     :raises RegistrationFailureReasons.PARSE_FAILURE: If molecule parsing fails.
     :raises RegistrationFailureReasons.FILTERED: If molecule is filtered out.
     """
-
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     _check_config(config)
 
     tpl = _parse_mol(mol=mol,
@@ -806,12 +784,6 @@ def bulk_register(config=None,
     :param show_progress: If True, then a progress bar will be shown for the molecules.
     :return: A tuple containing the registry numbers or failure reasons for each molecule.
     """
-
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     if mols:
         pass
     elif sdfile:
@@ -935,10 +907,7 @@ def registration_counts(config=None):
     :param config: Configuration dictionary.
     :return: either the number of molecule in the database or a 2-tuple withe (number of molecules, number of conformers).
     """
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
+    _check_config(config)
 
     cn = connect(config)
     curs = cn.cursor()
@@ -963,11 +932,7 @@ def get_all_identifiers(config=None):
     :param config: Configuration dictionary.
     :return: A tuple with all of the identifiers in the database.
     """
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
+    _check_config(config)
     if _lookupWithDefault(config, "registerConformers"):
         cn = connect(config)
         curs = cn.cursor()
@@ -994,11 +959,7 @@ def get_all_registry_numbers(config=None):
         "Use get_all_identifiers() instead.",
         DeprecationWarning,
         stacklevel=2)
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
+    _check_config(config)
     cn = connect(config)
     curs = cn.cursor()
     curs.execute(f'select molregno from {hashTableName}')
@@ -1033,11 +994,6 @@ def query(config=None,
     :raises ValueError: If ids are provided but registerConformers is not enabled.
     :return: List of registry numbers or list of (molregno, conf_id) tuples.
     """
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     _check_config(config)
 
     if ids is not None:
@@ -1140,12 +1096,6 @@ def retrieve(config=None,
     :param bool no_verbose: If this is False, then the registry number will be printed.
     :return: A dictionary of (data, format) 2-tuples with molregnos as keys.
     """
-
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     _check_config(config)
 
     registerConformers = _lookupWithDefault(config, "registerConformers")
@@ -1255,11 +1205,6 @@ def _initdb(config=None, confirm=False):
     """
     if not confirm:
         return
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     _check_config(config)
 
     cn = connect(config)
@@ -1359,7 +1304,6 @@ def _check_config(config):
         is raised.
 
     '''
-
     if not config:
         config = _configure()
     elif isinstance(config, str):
