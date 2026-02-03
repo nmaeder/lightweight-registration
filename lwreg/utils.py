@@ -676,6 +676,59 @@ def register(config=None,
     return res
 
 
+def _register_multiple_conformers(tpl, escape, cn, curs, config,
+                                  fail_on_duplicate):
+    # start by registering the first conformer in order to
+    # get the molregno that we'll use later
+    mrns = {}
+    rc = []
+    smiToCache = {}
+    res = []
+    for conf in tpl.mol.GetConformers():
+        Chem.AssignStereochemistryFrom3D(tpl.mol, conf.GetId())
+        smi = Chem.MolToSmiles(tpl.mol)
+        if smi not in mrns:
+            try:
+                mrn, conf_id = _register_mol(tpl,
+                                             escape,
+                                             cn,
+                                             curs,
+                                             config,
+                                             fail_on_duplicate,
+                                             confId=conf.GetId(),
+                                             molCache=rc)
+            except _violations:
+                res.append(RegistrationFailureReasons.DUPLICATE)
+                continue
+            except:
+                res.append(RegistrationFailureReasons.PARSE_FAILURE)
+                continue
+            if mrn is None:
+                res.append(RegistrationFailureReasons.FILTERED)
+                continue
+            mrns[smi] = mrn
+            smiToCache[smi] = len(rc) - 1
+            res.append((mrn, conf_id))
+        else:
+            sMol = rc[smiToCache[smi]]
+            mrn = mrns[smi]
+            molb = Chem.MolToV3KMolBlock(sMol, confId=conf.GetId())
+            try:
+                conf_id = _register_one_conformer(mrn,
+                                                  sMol,
+                                                  molb,
+                                                  cn,
+                                                  curs,
+                                                  config,
+                                                  fail_on_duplicate,
+                                                  confId=conf.GetId())
+            except _violations:
+                res.append(RegistrationFailureReasons.DUPLICATE)
+                continue
+            res.append((mrn, conf_id))
+    return res
+
+
 def register_multiple_conformers(config=None,
                                  mol=None,
                                  escape=None,
@@ -692,11 +745,6 @@ def register_multiple_conformers(config=None,
     :return: A tuple of (molregno, conf_id) for each conformer registered.
 
     """
-    if not config:
-        config = _configure()
-    elif isinstance(config, str):
-        config = _configure(filename=config)
-
     _check_config(config)
     if not _lookupWithDefault(config, "registerConformers"):
         raise ValueError(
@@ -709,52 +757,12 @@ def register_multiple_conformers(config=None,
 
     cn = connect(config)
     curs = cn.cursor()
-
-    # start by registering the first conformer in order to
-    # get the molregno that we'll use later
-    rc = []
-    mrns = {}
-    confsDone = set()
-    confMrns = []
-    res = []
-    for i, conf in enumerate(tpl.mol.GetConformers()):
-        Chem.AssignStereochemistryFrom3D(tpl.mol, conf.GetId())
-        smi = Chem.MolToSmiles(tpl.mol)
-        if smi not in mrns:
-            mrn, conf_id = _register_mol(tpl,
-                                         escape,
-                                         cn,
-                                         curs,
-                                         config,
-                                         fail_on_duplicate,
-                                         confId=conf.GetId(),
-                                         molCache=rc)
-            if mrn is not None:
-                mrns[smi] = mrn
-                confsDone.add(i)
-                res.append((mrn, conf_id))
-        else:
-            mrn = mrns[smi]
-        confMrns.append(mrn)
-    if not len(res):
-        return RegistrationFailureReasons.FILTERED
-
-    sMol = rc[0]
-    for i, conf in enumerate(sMol.GetConformers()):
-        if i in confsDone:
-            # we already registered the first conformer
-            continue
-        molb = Chem.MolToV3KMolBlock(sMol, confId=conf.GetId())
-        mrn = confMrns[i]
-        conf_id = _register_one_conformer(mrn,
-                                          sMol,
-                                          molb,
-                                          cn,
-                                          curs,
-                                          config,
-                                          fail_on_duplicate,
-                                          confId=conf.GetId())
-        res.append((mrn, conf_id))
+    res = _register_multiple_conformers(tpl=tpl,
+                                        escape=escape,
+                                        cn=cn,
+                                        curs=curs,
+                                        config=config,
+                                        fail_on_duplicate=fail_on_duplicate)
     if not no_verbose:
         print(res)
     return tuple(res)
