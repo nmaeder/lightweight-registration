@@ -14,6 +14,7 @@ from rdkit.Chem import rdMolTransforms
 import random
 import copy
 import tempfile
+from itertools import chain
 
 try:
     from . import utils
