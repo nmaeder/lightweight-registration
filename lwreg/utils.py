@@ -762,7 +762,7 @@ def register_multiple_conformers(config=None,
                                         fail_on_duplicate=fail_on_duplicate)
     if not no_verbose:
         print(res)
-    return tuple(res)
+    return res
 
 
 def bulk_register(config=None,
