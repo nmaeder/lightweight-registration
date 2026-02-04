@@ -700,9 +700,6 @@ def _register_multiple_conformers(tpl, escape, cn, curs, config,
             except _violations:
                 res.append(RegistrationFailureReasons.DUPLICATE)
                 continue
-            except:
-                res.append(RegistrationFailureReasons.PARSE_FAILURE)
-                continue
             if mrn is None:
                 res.append(RegistrationFailureReasons.FILTERED)
                 continue
@@ -851,9 +848,6 @@ def bulk_register(config=None,
 
             except _violations:
                 res.append(RegistrationFailureReasons.DUPLICATE)
-                continue
-            except:
-                res.append(RegistrationFailureReasons.PARSE_FAILURE)
                 continue
             if mrn is None:
                 mrn = RegistrationFailureReasons.FILTERED
