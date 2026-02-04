@@ -3,14 +3,12 @@
 # This file is part of lwreg.
 # The contents are covered by the terms of the MIT license
 # which is included in the file LICENSE,
-import os
 import time
 from datetime import datetime, timedelta
 import unittest
 import sqlite3
 from rdkit import Chem
 from rdkit.Chem import rdDistGeom
-from rdkit.Chem import rdMolTransforms
 import random
 import copy
 import tempfile
@@ -63,8 +61,7 @@ class TestLWReg(unittest.TestCase):
         utils._initdb(config=self._config, confirm=True)
 
         self.assertEqual(utils.registration_counts(config=self._config), 0)
-        self.assertEqual(utils.get_all_identifiers(config=self._config),
-                         ())
+        self.assertEqual(utils.get_all_identifiers(config=self._config), ())
 
         self.assertEqual(utils.register(smiles='CCC', config=self._config), 1)
         self.assertEqual(utils.register(smiles='CCCO', config=self._config), 2)
@@ -804,7 +801,7 @@ class TestRegisterConformers(unittest.TestCase):
                                                   config=self._config)
         self.assertEqual(len(rres), 11)
         self.assertEqual(len(set(rres)), 10)
-        self.assertEqual(len(set([mrn for mrn, cid in rres])), 1)
+        self.assertEqual(len(set([mrn for mrn, _ in rres])), 1)
 
         # make sure we can add more conformers:
         mol2 = Chem.Mol(mol)
@@ -815,7 +812,7 @@ class TestRegisterConformers(unittest.TestCase):
                                                   config=self._config)
         self.assertEqual(len(rres), 10)
         self.assertEqual(len(set(rres)), 10)
-        self.assertEqual(len(set([mrn for mrn, cid in rres])), 1)
+        self.assertEqual(len(set([mrn for mrn, _ in rres])), 1)
 
         # make sure we can still fail on duplicate conformers:
         utils._initdb(config=self._config, confirm=True)
