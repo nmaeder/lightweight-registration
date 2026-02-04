@@ -739,8 +739,8 @@ class TestRegisterConformers(unittest.TestCase):
         random.shuffle(aorder)
         nmol = Chem.RenumberAtoms(self._mol1, aorder)
         expected = {
-            'sqlite3': ((1, 1), (1, 2), (1, 1), (2, 3)),
-            'postgresql': ((1, 1), (1, 2), (1, 1), (4, 4)),
+            'sqlite3': (((1, 1), ), ((1, 2), ), ((1, 1), ), ((2, 3), )),
+            'postgresql': (((1, 1), ), ((1, 2), ), ((1, 1), ), ((4, 4), )),
         }
         self.assertEqual(
             utils.bulk_register(mols=(self._mol1, self._mol2, nmol,
@@ -756,6 +756,20 @@ class TestRegisterConformers(unittest.TestCase):
         }
         self.assertEqual(utils.get_all_identifiers(config=self._config),
                          expected[self._config['dbtype']])
+        utils._initdb(config=self._config, confirm=True)
+        expected = {
+            'sqlite3': (((1, 1), ), ((1, 2), ),
+                        (RegistrationFailureReasons.DUPLICATE, ), ((2, 3), )),
+            'postgresql':
+            (((1, 1), ), ((1, 2), ), (RegistrationFailureReasons.DUPLICATE, ),
+             ((4, 4), )),
+        }
+        self.assertTrue(
+            utils.bulk_register(mols=(self._mol1, self._mol2, nmol,
+                                      self._mol3),
+                                fail_on_duplicate=True,
+                                config=self._config),
+            expected[self._config['dbtype']])
 
     def testNoConformers(self):
         utils._initdb(config=self._config, confirm=True)
@@ -824,22 +838,31 @@ class TestRegisterConformers(unittest.TestCase):
         cids = rdDistGeom.EmbedMultipleConfs(mol3, 10, randomSeed=0xf00d)
         self.assertEqual(len(cids), 10)
 
-        rres = utils.bulk_register(mols=[mol, mol2, mol3], fail_on_duplicate=False, config=self._config)
+        rres = utils.bulk_register(mols=[mol, mol2, mol3],
+                                   fail_on_duplicate=False,
+                                   config=self._config)
+        self.assertEqual(len(rres), 3)
+        rres = tuple(chain.from_iterable(rres))
         self.assertEqual(len(rres), 30)
         self.assertEqual(len(set(rres)), 20)
         self.assertEqual(len(set([mrn for mrn, _ in rres])), 2)
 
         utils._initdb(config=self._config, confirm=True)
-        rres = utils.bulk_register(mols=[mol, mol2, mol3], fail_on_duplicate=True, config=self._config)
-        self.assertEqual(len(rres), 21)
+        rres = utils.bulk_register(mols=[mol, mol2, mol3],
+                                   fail_on_duplicate=True,
+                                   config=self._config)
+        self.assertEqual(len(rres), 3)
+        rres = list(chain.from_iterable(rres))
+        self.assertEqual(len(rres), 30)
         self.assertEqual(len(set(rres)), 21)
-        self.assertTrue(RegistrationFailureReasons.DUPLICATE in rres)
+        self.assertEqual(rres.count(RegistrationFailureReasons.DUPLICATE), 10)
 
     def testConformerQuery(self):
         ''' querying using a molecule which has conformers '''
         utils._initdb(config=self._config, confirm=True)
         regids = utils.bulk_register(mols=(self._mol1, self._mol3),
                                      config=self._config)
+        regids = tuple(chain.from_iterable(regids))
         self.assertEqual(
             sorted(utils.query(mol=self._mol1, config=self._config)),
             [regids[0]])
@@ -861,7 +884,7 @@ class TestRegisterConformers(unittest.TestCase):
         utils._initdb(config=self._config, confirm=True)
         regids = utils.bulk_register(mols=(self._mol1, self._mol2, self._mol3),
                                      config=self._config)
-
+        regids = tuple(chain.from_iterable(regids))
         res = utils.retrieve(ids=(regids[0], regids[2]), config=self._config)
         self.assertEqual(len(res), 2)
         self.assertTrue(regids[0] in res)
@@ -900,7 +923,7 @@ class TestRegisterConformers(unittest.TestCase):
         utils._initdb(config=self._config, confirm=True)
         regids = utils.bulk_register(mols=(self._mol1, self._mol2, self._mol3),
                                      config=self._config)
-        mrns, cids = zip(*regids)
+        mrns, _ = zip(*chain.from_iterable(regids))
         self.assertEqual(
             sorted(utils.query(ids=mrns[0:1], config=self._config)), [(1, 1),
                                                                       (1, 2)])
