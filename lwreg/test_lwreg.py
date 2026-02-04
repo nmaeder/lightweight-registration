@@ -818,10 +818,11 @@ class TestRegisterConformers(unittest.TestCase):
 
         # make sure we can still fail on duplicate conformers:
         utils._initdb(config=self._config, confirm=True)
-        with self.assertRaises(self.integrityError):
+        self.assertIn(
+            RegistrationFailureReasons.DUPLICATE,
             utils.register_multiple_conformers(mol=mol,
                                                fail_on_duplicate=True,
-                                               config=self._config)
+                                               config=self._config))
 
     def testBulkMultiConfMolecule(self):
         utils._initdb(config=self._config, confirm=True)
@@ -1055,9 +1056,11 @@ class TestRegisterConformers(unittest.TestCase):
             pi = conf.GetAtomPosition(i)
             conf.SetAtomPosition(i, (pi.x + 0.5, pi.y - 0.3, pi.z + 1.5))
         cp.AddConformer(self._mol1.GetConformer(), assignId=True)
-        self.assertRaises(
-            self.integrityError, lambda: utils.register_multiple_conformers(
-                mol=cp, fail_on_duplicate=True, config=cfg))
+        self.assertIn(
+            RegistrationFailureReasons.DUPLICATE,
+            utils.register_multiple_conformers(mol=cp,
+                                               fail_on_duplicate=True,
+                                               config=cfg))
 
 
 @unittest.skipIf(psycopg is None, "skipping postgresql tests")
