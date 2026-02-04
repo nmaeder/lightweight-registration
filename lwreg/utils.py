@@ -737,7 +737,7 @@ def register_multiple_conformers(config=None,
     :param config: Configuration dictionary or filename.
     :param mol: RDKit molecule object (must have at least one conformer).
     :param escape: The escape layer.
-    :param fail_on_duplicate: If True, an exception is raised when trying to register a duplicate.
+    :param fail_on_duplicate: If True, ``RegistrationFailureReasons.DUPLICATE`` will be returned for each already-registered conformer, otherwise the already existing structure ID will be returned.
     :param no_verbose: If False, the registry number will be printed.
     :return: A tuple of (molregno, conf_id) for each conformer registered.
 
