@@ -723,7 +723,7 @@ def _register_multiple_conformers(tpl, escape, cn, curs, config,
                 res.append(RegistrationFailureReasons.DUPLICATE)
                 continue
             res.append((mrn, conf_id))
-    return res
+    return tuple(res)
 
 
 def register_multiple_conformers(config=None,
