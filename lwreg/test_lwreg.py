@@ -827,14 +827,17 @@ class TestRegisterConformers(unittest.TestCase):
         utils._initdb(config=self._config, confirm=True)
 
         mol1 = Chem.Mol(self._mol1)
-        mol2 = Chem.Mol(self._mol1)
-        mol3 = Chem.Mol(self._mol3)
         cids = rdDistGeom.EmbedMultipleConfs(mol1, 10, randomSeed=0xf00d)
+        self.assertEqual(len(cids), 10)
+        
+        mol2 = Chem.Mol(self._mol1)
         cids = rdDistGeom.EmbedMultipleConfs(mol2, 10, randomSeed=0xf00d)
+        self.assertEqual(len(cids), 10)
+
+        mol3 = Chem.Mol(self._mol3)
         cids = rdDistGeom.EmbedMultipleConfs(mol3, 10, randomSeed=0xf00d)
         self.assertEqual(len(cids), 10)
-        self.assertEqual(len(cids), 10)
-        self.assertEqual(len(cids), 10)
+
         mols = (mol1, mol2, mol3)
         rres = utils.bulk_register(mols=mols,
                                    fail_on_duplicate=False,
@@ -861,7 +864,7 @@ class TestRegisterConformers(unittest.TestCase):
 
         # Check for the returned Failure cauases on the duplicate conformers
         self.assertEqual(set(rres[1]),
-                         {(RegistrationFailureReasons.DUPLICATE)})
+                         {RegistrationFailureReasons.DUPLICATE})
         self.assertEqual(
             list(rres[1]).count(RegistrationFailureReasons.DUPLICATE), 10)
 
